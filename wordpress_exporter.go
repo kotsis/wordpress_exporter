@@ -13,6 +13,9 @@ import (
   "io/ioutil"
   "strings"
   "regexp"
+
+  "database/sql"
+  _ "github.com/go-sql-driver/mysql"
 )
 
 //This is my collector metrics
@@ -65,13 +68,34 @@ func (collector *wpCollector) Describe(ch chan<- *prometheus.Desc) {
 func (collector *wpCollector) Collect(ch chan<- prometheus.Metric) {
 
 	//We run DB queries here to retrieve the metrics we care about
+        dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", collector.db_user, collector.db_pass, collector.db_host, collector.db_name)
+
+        db, err := sql.Open("mysql", dsn)
+        if(err != nil){
+            fmt.Fprintf(os.Stderr, "Error connecting to database: %s ...\n", err)
+            os.Exit(1)
+        }
+
+        var num_users float64
+        q1 := fmt.Sprintf("select count(*) as num_users from %susers;", collector.db_table_prefix)
+        err = db.QueryRow(q1).Scan(&num_users)
+        if err != nil {
+	    log.Fatal(err)
+        }
+
+        //select  count(*) from wp_comments;
+        //to-do
+
+        //select count(*) from wp_posts;
+        //to-do
+
 	var metricValue float64
         metricValue = 1
 	//to-do
 
 	//Write latest value for each metric in the prometheus metric channel.
 	//Note that you can pass CounterValue, GaugeValue, or UntypedValue types here.
-	ch <- prometheus.MustNewConstMetric(collector.numPostsMetric, prometheus.CounterValue, metricValue)
+	ch <- prometheus.MustNewConstMetric(collector.numPostsMetric, prometheus.CounterValue, num_users)
 	ch <- prometheus.MustNewConstMetric(collector.numCommentsMetric, prometheus.CounterValue, metricValue)
 	ch <- prometheus.MustNewConstMetric(collector.numUsersMetric, prometheus.CounterValue, metricValue)
 

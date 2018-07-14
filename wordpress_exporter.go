@@ -5,6 +5,7 @@ import (
 
   log "github.com/Sirupsen/logrus"
   "github.com/prometheus/client_golang/prometheus/promhttp"
+  "github.com/prometheus/client_golang/prometheus"
 
   "flag"
   "fmt"
@@ -13,6 +14,68 @@ import (
   "strings"
   "regexp"
 )
+
+//This is my collector metrics
+type wpCollector struct {
+    numPostsMetric *prometheus.Desc
+    numCommentsMetric *prometheus.Desc
+    numUsersMetric *prometheus.Desc
+
+    db_host string
+    db_name string
+    db_user string
+    db_pass string
+    db_table_prefix string
+}
+
+//This is a constructor for my wpCollector struct
+func newWordPressCollector(host string, dbname string, username string, pass string, table_prefix string) *wpCollector {
+    return &wpCollector{
+        numPostsMetric: prometheus.NewDesc("num_wp_posts_metric",
+                        "Shows the number of total posts in the WordPress site",
+                        nil, nil,
+        ),
+        numCommentsMetric: prometheus.NewDesc("num_wp_comments_metric",
+                           "Shows the number of total comments in the WordPress site",
+                           nil, nil,
+        ),
+        numUsersMetric: prometheus.NewDesc("num_wp_users_metric",
+                        "Shows the number of registered users in the WordPress site",
+                        nil, nil,
+        ),
+
+        db_host: host,
+        db_name: dbname,
+        db_user: username,
+        db_pass: pass,
+        db_table_prefix: table_prefix,
+    }
+}
+
+//Describe method is required for a prometheus.Collector type
+func (collector *wpCollector) Describe(ch chan<- *prometheus.Desc) {
+
+        //We set the metrics
+	ch <- collector.numPostsMetric
+	ch <- collector.numCommentsMetric
+	ch <- collector.numUsersMetric
+}
+
+//Collect method is required for a prometheus.Collector type
+func (collector *wpCollector) Collect(ch chan<- prometheus.Metric) {
+
+	//We run DB queries here to retrieve the metrics we care about
+	var metricValue float64
+        metricValue = 1
+	//to-do
+
+	//Write latest value for each metric in the prometheus metric channel.
+	//Note that you can pass CounterValue, GaugeValue, or UntypedValue types here.
+	ch <- prometheus.MustNewConstMetric(collector.numPostsMetric, prometheus.CounterValue, metricValue)
+	ch <- prometheus.MustNewConstMetric(collector.numCommentsMetric, prometheus.CounterValue, metricValue)
+	ch <- prometheus.MustNewConstMetric(collector.numUsersMetric, prometheus.CounterValue, metricValue)
+
+}
 
 func main() {
 
@@ -81,13 +144,17 @@ func main() {
     db_password := res[1]
 
     //$table_prefix  = 'wp_';
-    r, _ = regexp.Compile(`$table_prefix.*?=.*?['"](.*?)['"];`)
+    r, _ = regexp.Compile(`\$table_prefix.*?=.*?['"](.*?)['"];`)
     res = r.FindStringSubmatch(string(dat[:len(dat)]))
     if(res == nil){
         fmt.Fprintf(os.Stderr, "Error could not find $table_prefix in wp-config.php ...\n")
         os.Exit(1)
     }
     table_prefix := res[1]
+
+    //We create the collector
+    collector := newWordPressCollector(db_host, db_name, db_user, db_password, table_prefix);
+    prometheus.MustRegister(collector)
   }
 
   //This section will start the HTTP server and expose

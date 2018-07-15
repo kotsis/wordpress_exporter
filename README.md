@@ -6,8 +6,6 @@ Prometheus exporter for WordPress
 $ go get github.com/kotsis/wordpress_exporter
 ```
 
-# How to setup a docker WordPress for monitoring
-
 # Usage of wordpress_exporter
 ```sh
 $ wordpress_exporter -wpconfig=/path/to/wp-config
@@ -19,7 +17,7 @@ $ wordpress_exporter -host=127.0.0.1 -port=3306 -user=uuuu -db=dddd -tableprefix
 
 It starts serving metrics at http://localhost:8888/metrics
 
-# Assumptions
+# Prometheus configuration for wordpress_exporter
 For Prometheus to start scraping the metrics you have to edit /etc/prometheus/prometheus.yml and add:
 
 ```sh

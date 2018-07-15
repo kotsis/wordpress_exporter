@@ -93,9 +93,9 @@ func (collector *wpCollector) Collect(ch chan<- prometheus.Metric) {
         log.Fatal(err)
     }
 
-    //select count(*) as num_posts from wp_posts;
+    //select count(*) as num_posts from wp_posts WHERE post_type='post' AND post_status!='auto-draft';
     var num_posts float64
-    q3 := fmt.Sprintf("select count(*) as num_posts from %sposts;", collector.db_table_prefix)
+    q3 := fmt.Sprintf("select count(*) as num_posts from %sposts WHERE post_type='post' AND post_status!='auto-draft';", collector.db_table_prefix)
     err = db.QueryRow(q3).Scan(&num_posts)
     if err != nil {
         log.Fatal(err)
@@ -112,13 +112,39 @@ func (collector *wpCollector) Collect(ch chan<- prometheus.Metric) {
 func main() {
 
     wpConfPtr := flag.String("wpconfig", "", "Path for wp-config.php file of the WordPress site you wish to monitor")
+    wpHostPtr := flag.String("host", "127.0.0.1", "Hostname or Address for DB server")
+    wpPortPtr := flag.String("port", "3306", "DB server port")
+    wpNamePtr := flag.String("db", "", "DB name")
+    wpUserPtr := flag.String("user", "", "DB user for connection")
+    wpPassPtr := flag.String("pass", "", "DB password for connection")
+    wpTablePrefixPtr := flag.String("tableprefix", "wp_", "Table prefix for WordPress tables")
 
     flag.Parse()
 
     if *wpConfPtr == "" {
+        db_host := fmt.Sprintf("%s:%s", *wpHostPtr, *wpPortPtr)
+        db_name := *wpNamePtr
+        db_user := *wpUserPtr
+        db_password := *wpPassPtr
+        table_prefix := *wpTablePrefixPtr
+
+        if db_name == "" {
+            fmt.Fprintf(os.Stderr, "flag -db=dbname required!\n")
+            os.Exit(1)
+        }
+
+        if db_user == "" {
+            fmt.Fprintf(os.Stderr, "flag -user=username required!\n")
+            os.Exit(1)
+        }
+
+        //We create the collector
+        collector := newWordPressCollector(db_host, db_name, db_user, db_password, table_prefix)
+        prometheus.MustRegister(collector)
+
         //no path supplied error
-        fmt.Fprintf(os.Stderr, "flag -wpconfig=/path/to/wp-config/ required!\n")
-        os.Exit(1)
+        //fmt.Fprintf(os.Stderr, "flag -wpconfig=/path/to/wp-config/ required!\n")
+        //os.Exit(1)
     } else{
         var wpconfig_file strings.Builder
         wpconfig_file.WriteString(*wpConfPtr)
@@ -183,7 +209,7 @@ func main() {
         table_prefix := res[1]
 
         //We create the collector
-        collector := newWordPressCollector(db_host, db_name, db_user, db_password, table_prefix);
+        collector := newWordPressCollector(db_host, db_name, db_user, db_password, table_prefix)
         prometheus.MustRegister(collector)
     }
 

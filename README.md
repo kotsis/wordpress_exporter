@@ -43,6 +43,12 @@ $ sudo docker-compose up -d
 
 Now a wordpress is being served at : http://localhost:8000 where you must visit and create a user with a password.
 Then you can login in WordPress and create posts, users etc.
+
+Next you must start the wordpress_exporter
+```sh
+$ wordpress_exporter -port=33306 -db=wordpress -user=wordpress -pass=wordpress1234
+```
+
 You will see the metrics from those actions.
 
 # Grafana

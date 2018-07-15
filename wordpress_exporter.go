@@ -34,15 +34,15 @@ type wpCollector struct {
 //This is a constructor for my wpCollector struct
 func newWordPressCollector(host string, dbname string, username string, pass string, table_prefix string) *wpCollector {
     return &wpCollector{
-        numPostsMetric: prometheus.NewDesc("num_wp_posts_metric",
+        numPostsMetric: prometheus.NewDesc("wp_num_posts_metric",
                         "Shows the number of total posts in the WordPress site",
                         nil, nil,
         ),
-        numCommentsMetric: prometheus.NewDesc("num_wp_comments_metric",
+        numCommentsMetric: prometheus.NewDesc("wp_num_comments_metric",
                            "Shows the number of total comments in the WordPress site",
                            nil, nil,
         ),
-        numUsersMetric: prometheus.NewDesc("num_wp_users_metric",
+        numUsersMetric: prometheus.NewDesc("wp_num_users_metric",
                         "Shows the number of registered users in the WordPress site",
                         nil, nil,
         ),

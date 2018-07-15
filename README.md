@@ -12,6 +12,11 @@ $ go get github.com/kotsis/wordpress_exporter
 ```sh
 $ wordpress_exporter -wpconfig=/path/to/wp-config
 ```
+or
+```sh
+$ wordpress_exporter -host=127.0.0.1 -port=3306 -user=uuuu -db=dddd -tableprefix=wp_ -pass=xxxx
+```
+
 It starts serving metrics at http://localhost:8888/metrics
 
 # Assumptions

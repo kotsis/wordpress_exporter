@@ -76,6 +76,7 @@ func (collector *wpCollector) Collect(ch chan<- prometheus.Metric) {
             os.Exit(1)
         }
 
+        //select count(*) as num_users from wp_users;
         var num_users float64
         q1 := fmt.Sprintf("select count(*) as num_users from %susers;", collector.db_table_prefix)
         err = db.QueryRow(q1).Scan(&num_users)
@@ -83,21 +84,27 @@ func (collector *wpCollector) Collect(ch chan<- prometheus.Metric) {
 	    log.Fatal(err)
         }
 
-        //select  count(*) from wp_comments;
-        //to-do
+        //select count(*) as num_comments from wp_comments;
+        var num_comments float64
+        q2 := fmt.Sprintf("select count(*) as num_comments from %scomments;", collector.db_table_prefix)
+        err = db.QueryRow(q2).Scan(&num_comments)
+        if err != nil {
+            log.Fatal(err)
+        }
 
-        //select count(*) from wp_posts;
-        //to-do
-
-	var metricValue float64
-        metricValue = 1
-	//to-do
+        //select count(*) as num_posts from wp_posts;
+        var num_posts float64
+        q3 := fmt.Sprintf("select count(*) as num_posts from %sposts;", collector.db_table_prefix)
+        err = db.QueryRow(q3).Scan(&num_posts)
+        if err != nil {
+            log.Fatal(err)
+        }
 
 	//Write latest value for each metric in the prometheus metric channel.
 	//Note that you can pass CounterValue, GaugeValue, or UntypedValue types here.
-	ch <- prometheus.MustNewConstMetric(collector.numPostsMetric, prometheus.CounterValue, num_users)
-	ch <- prometheus.MustNewConstMetric(collector.numCommentsMetric, prometheus.CounterValue, metricValue)
-	ch <- prometheus.MustNewConstMetric(collector.numUsersMetric, prometheus.CounterValue, metricValue)
+	ch <- prometheus.MustNewConstMetric(collector.numPostsMetric, prometheus.CounterValue, num_posts)
+	ch <- prometheus.MustNewConstMetric(collector.numCommentsMetric, prometheus.CounterValue, num_comments)
+	ch <- prometheus.MustNewConstMetric(collector.numUsersMetric, prometheus.CounterValue, num_users)
 
 }
 

@@ -75,6 +75,7 @@ func (collector *wpCollector) Collect(ch chan<- prometheus.Metric) {
             fmt.Fprintf(os.Stderr, "Error connecting to database: %s ...\n", err)
             os.Exit(1)
         }
+        defer db.Close()
 
         //select count(*) as num_users from wp_users;
         var num_users float64

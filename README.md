@@ -33,10 +33,12 @@ in a docker container perhaps you will need to change localhost with the IP of t
 Here is provided a quick WordPress service setup with docker-compose for testing the wordpress_exporter.
 You can go in $GOPATH/src/github.com/kotsis/wordress_exporter and run:
 ```sh
-$ docker-compose up -d
+$ sudo docker-compose up -d
 ```
 
-Now a wordpress is being server at :
+Now a wordpress is being served at : http://localhost:8000 where you must visit and create a user with a password.
+Then you can login in WordPress and create posts, users etc.
+You will see the metrics from those actions.
 
 # Grafana
 You can find a WordPress dashboard in $GOPATH/src/github.com/kotsis/wordress_exporter/wordpress_grafana.json
